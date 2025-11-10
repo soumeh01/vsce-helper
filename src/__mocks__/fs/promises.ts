@@ -24,4 +24,5 @@ export default {
     readFile: vitest.spyOn(fs.promises, 'readFile'),
     writeFile: vitest.spyOn(fs.promises, 'writeFile'),
     rename: vitest.spyOn(fs.promises, 'rename'),
+    stat: vitest.spyOn(fs.promises, 'stat'),
 };

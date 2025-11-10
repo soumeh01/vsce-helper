@@ -25,7 +25,7 @@ import { PackageJson } from 'type-fest';
 import { promisify } from 'node:util';
 import tempfile from 'tempfile';
 import { OutgoingHttpHeaders } from 'node:http';
-import fastExtract, { Options } from 'fast-extract';
+import decompress from 'decompress';
 import process from 'node:process';
 
 const exec = promisify(execAsync);
@@ -176,11 +176,11 @@ export abstract class AbstractAsset implements Asset {
         return downloadFile(url.toString(), downloadFilePath, headers);
     }
 
-    protected async extractArchive(archiveFile: string, dest?: string, options: Options = {}) {
+    protected async extractArchive(archiveFile: string, dest?: string, options?: decompress.DecompressOptions) {
         dest = await this.mkDest(dest);
         console.debug(`Extracting to ${dest} ...`);
 
-        await fastExtract(archiveFile, dest, { force: true, ...options }).catch(error => {
+        await decompress(archiveFile, dest, options).catch(error => {
             throw new Error('Failed to extract archive', { cause: error });
         });
 

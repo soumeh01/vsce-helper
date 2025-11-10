@@ -24,7 +24,7 @@ import { faker } from '@faker-js/faker';
 import { OutgoingHttpHeaders } from 'node:http';
 import { downloadFile } from './file-download.ts';
 
-vitest.mock('node:fs/promises');
+vitest.mock('node:fs/promises', () => import('./__mocks__/fs/promises.js'));
 vitest.mock('./file-download.ts', () => ({
     downloadFile: vitest.fn((_url, dest, _header) => dest),
 }));

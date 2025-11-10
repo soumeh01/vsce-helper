@@ -1,6 +1,6 @@
 {
   "name": "@open-cmsis-pack/vsce-helper",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "publisher": "Arm",
   "author": "Jonatan Antoni <jonatan.antoni@arm.com>",
@@ -44,23 +44,20 @@
   "devDependencies": {
     "@eslint/js": "^9.31.0",
     "@faker-js/faker": "^9.9.0",
+    "@types/decompress": "^4.2.7",
     "@types/node": "^20.19.0",
     "@types/yargs": "^17.0.33",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
+    "decompress": "^4.2.1",
     "eslint": "^9.31.0",
-    "eslint-plugin-security": "^3.0.1",
-    "globals": "^16.3.0",
     "memfs": "^4.17.2",
     "nock": "^14.0.6",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "fast-extract": "^1.7.2",
     "node-fetch": "^3.3.2",
     "octokit": "^5.0.3",
     "tempfile": "^5.0.0",
