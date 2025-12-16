@@ -1,6 +1,6 @@
 {
   "name": "@open-cmsis-pack/vsce-helper",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "publisher": "Arm",
   "author": "Jonatan Antoni <jonatan.antoni@arm.com>",
@@ -42,6 +42,7 @@
     "types:check": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/decompress": "^4.2.7",
     "@eslint/js": "^9.39.1",
     "@faker-js/faker": "^10.1.0",
     "@types/node": "^20.19.25",
@@ -56,8 +57,8 @@
     "vitest": "^4.0.13"
   },
   "dependencies": {
-    "@types/decompress": "^4.2.7",
     "decompress": "^4.2.1",
+    "decompress-tarxz": "^3.0.0",
     "node-fetch": "^3.3.2",
     "octokit": "^5.0.3",
     "tempfile": "^5.0.0",

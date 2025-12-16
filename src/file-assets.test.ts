@@ -62,7 +62,7 @@ describe('ArchiveFileAsset', () => {
 
             expect(result).toBe(targetDir);
             expect(subjectMock.copyTo).toHaveBeenCalledWith();
-            expect(decompress).toHaveBeenCalledWith(archiveFile, targetDir, { strip: 1 });
+            expect(decompress).toHaveBeenCalledWith(archiveFile, targetDir, expect.objectContaining({ strip: 1 }));
 
             await asset.dispose();
             expect(fs.rm).not.toHaveBeenCalledWith(expect.any(String), { force: true, recursive: true });
@@ -86,7 +86,7 @@ describe('ArchiveFileAsset', () => {
 
             expect(result).toBeDefined();
             expect(subjectMock.copyTo).toHaveBeenCalledWith();
-            expect(decompress).toHaveBeenCalledWith(archiveFile, expect.any(String), { strip: 1 });
+            expect(decompress).toHaveBeenCalledWith(archiveFile, expect.any(String), expect.objectContaining({ strip: 1 }));
 
             await asset.dispose();
             expect(fs.rm).toHaveBeenCalledWith(result, { force: true, recursive: true });
