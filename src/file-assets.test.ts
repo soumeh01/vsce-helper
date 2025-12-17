@@ -24,7 +24,7 @@ import { vol } from 'memfs';
 import path from 'path';
 import { Asset } from './downloader.ts';
 import fs from 'node:fs/promises';
-import decompress from 'decompress';
+import fastExtract from 'fast-extract';
 
 vitest.mock('node:fs', async () => {
     const actualFs = await import('memfs');
@@ -33,8 +33,8 @@ vitest.mock('node:fs', async () => {
         createWriteStream: vitest.fn(actualFs.fs.createWriteStream),
     };
 });
-vitest.mock('node:fs/promises', () => import('./__mocks__/fs/promises.js'));
-vitest.mock('decompress', () => import('./__mocks__/decompress.js'));
+vitest.mock('node:fs/promises');
+vitest.mock('fast-extract');
 
 beforeEach(() => {
     vol.reset();
@@ -62,7 +62,7 @@ describe('ArchiveFileAsset', () => {
 
             expect(result).toBe(targetDir);
             expect(subjectMock.copyTo).toHaveBeenCalledWith();
-            expect(decompress).toHaveBeenCalledWith(archiveFile, targetDir, expect.objectContaining({ strip: 1 }));
+            expect(fastExtract).toHaveBeenCalledWith(archiveFile, targetDir, { force: true, strip: 1 });
 
             await asset.dispose();
             expect(fs.rm).not.toHaveBeenCalledWith(expect.any(String), { force: true, recursive: true });
@@ -86,7 +86,7 @@ describe('ArchiveFileAsset', () => {
 
             expect(result).toBeDefined();
             expect(subjectMock.copyTo).toHaveBeenCalledWith();
-            expect(decompress).toHaveBeenCalledWith(archiveFile, expect.any(String), expect.objectContaining({ strip: 1 }));
+            expect(fastExtract).toHaveBeenCalledWith(archiveFile, expect.any(String), { force: true, strip: 1 });
 
             await asset.dispose();
             expect(fs.rm).toHaveBeenCalledWith(result, { force: true, recursive: true });
@@ -149,7 +149,7 @@ describe('WebFileAsset', () => {
             expect(result).toBe(expectedResult);
 
             const disk = vol.toJSON();
-            expect(disk[path.posix.join(targetDir, filename)]).toBe(content);
+            expect(disk[expectedResult]).toBe(content);
 
             await asset.dispose();
             expect(fs.rm).not.toHaveBeenCalledWith(expect.any(String), { force: true, recursive: true });
@@ -174,7 +174,7 @@ describe('WebFileAsset', () => {
             expect(result).toBe(expectedResult);
 
             const disk = vol.toJSON();
-            expect(disk[path.posix.join(targetDir, filename)]).toBe(content);
+            expect(disk[expectedResult]).toBe(content);
 
             await asset.dispose();
             expect(fs.rm).not.toHaveBeenCalledWith(expect.any(String), { force: true, recursive: true });
@@ -199,7 +199,7 @@ describe('WebFileAsset', () => {
             expect(result).toBe(expectedResult);
 
             const disk = vol.toJSON();
-            expect(disk[path.posix.join(targetDir, url.hostname, url.pathname, filename)]).toBe(content);
+            expect(disk[expectedResult]).toBe(content);
 
             await asset.dispose();
             expect(fs.rm).not.toHaveBeenCalledWith(expect.any(String), { force: true, recursive: true });
@@ -222,7 +222,7 @@ describe('WebFileAsset', () => {
             expect(result).toMatch(new RegExp(`${filename}$`));
 
             const disk = vol.toJSON();
-            expect(disk[result.replace(/^[A-Za-z]:/, '').replace(/\\/g, '/')]).toBe(content);
+            expect(disk[result]).toBe(content);
 
             await asset.dispose();
             expect(fs.rm).toHaveBeenCalledWith(path.dirname(result), { force: true, recursive: true });
@@ -247,7 +247,7 @@ describe('LocalFileAsset', () => {
 
             expect(asset.version).toBeUndefined();
 
-            const expectedResult = path.posix.join(targetDir, targetName);
+            const expectedResult = path.join(targetDir, targetName);
             const result = await asset.copyTo(targetDir);
 
             expect(result).toBe(targetDir);
@@ -264,7 +264,7 @@ describe('LocalFileAsset', () => {
 
             expect(asset.version).toBeUndefined();
 
-            const expectedResult = path.posix.join(targetDir, path.basename(filepath));
+            const expectedResult = path.join(targetDir, path.basename(filepath));
             const result = await asset.copyTo(targetDir);
 
             expect(result).toBe(targetDir);

@@ -22,10 +22,10 @@ import { downloadFile } from './file-download.ts';
 import { faker } from '@faker-js/faker';
 import { Octokit } from 'octokit';
 import path from 'path';
-import { DecompressOptions } from 'decompress';
+import { Options } from 'fast-extract';
 import { fs, vol } from 'memfs';
 
-vitest.mock('node:fs/promises', () => import('./__mocks__/fs/promises.js'));
+vitest.mock('node:fs/promises');
 vitest.mock('./file-download.ts', () => ({
     downloadFile: vitest.fn((_url, dest, _header) => dest),
 }));
@@ -252,11 +252,11 @@ describe('GitHubReleaseAsset', () => {
                     browser_download_url: url,
                     content_type: 'application/gzip',
                     size: faker.number.int({ min: 1000, max: 100000 }),
+                    digest: null,
                     url: url,
                     node_id: '',
                     label: null,
                     state: 'uploaded',
-                    digest: null,
                     download_count: 0,
                     created_at: '',
                     updated_at: '',
@@ -288,7 +288,7 @@ describe('GitHubRepoAsset', () => {
         }
 
         public downloadRepo = vitest.fn(async (dest: string, _ref: string)  => path.join(dest, 'repo.tar.gz'));
-        public extractArchive = vitest.fn(async (_archiveFile: string, dest?: string, _options: DecompressOptions = {}) => dest ?? faker.system.directoryPath());
+        public extractArchive = vitest.fn(async (_archiveFile: string, dest?: string, _options: Options = {}) => dest ?? faker.system.directoryPath());
     }
 
     describe('copyTo', async () => {
@@ -304,7 +304,7 @@ describe('GitHubRepoAsset', () => {
 
             const asset = new GitHubRepoAssetTest(owner, repo, { ref: ref, path: repoFolder });
 
-            asset.extractArchive.mockImplementation(async (_archiveFile: string, dest?: string, _options: DecompressOptions = {}) => {
+            asset.extractArchive.mockImplementation(async (_archiveFile: string, dest?: string, _options: Options = {}) => {
                 dest = dest ?? faker.system.directoryPath();
                 fs.mkdirSync(path.join(dest, repoFolder), { recursive: true });
                 fs.writeFileSync(path.join(dest, repoFolder, repoFile), repoFileContent);
@@ -316,8 +316,9 @@ describe('GitHubRepoAsset', () => {
 
             expect(result).toBe(targetDir);
 
+            console.log(vol.toJSON());
             expect(vol.toJSON()).toEqual(expect.objectContaining({
-                [path.posix.join(targetDir, repoFile)]: repoFileContent,
+                [path.join(targetDir, repoFile)]: repoFileContent,
             }));
         });
 
@@ -332,7 +333,7 @@ describe('GitHubRepoAsset', () => {
 
             const asset = new GitHubRepoAssetTest(owner, repo, { ref: ref, path: path.join(repoFolder, repoFile) });
 
-            asset.extractArchive.mockImplementation(async (_archiveFile: string, dest?: string, _options: DecompressOptions = {}) => {
+            asset.extractArchive.mockImplementation(async (_archiveFile: string, dest?: string, _options: Options = {}) => {
                 dest = dest ?? faker.system.directoryPath();
                 fs.mkdirSync(path.join(dest, repoFolder), { recursive: true });
                 fs.writeFileSync(path.join(dest, repoFolder, repoFile), repoFileContent);
@@ -345,7 +346,7 @@ describe('GitHubRepoAsset', () => {
             expect(result).toBe(targetDir);
 
             expect(vol.toJSON()).toEqual(expect.objectContaining({
-                [path.posix.join(targetDir, repoFile)]: repoFileContent,
+                [path.join(targetDir, repoFile)]: repoFileContent,
             }));
         });
 
@@ -379,7 +380,7 @@ describe('GitHubWorkflowAsset', () => {
             const artifactName = faker.lorem.word();
             const artifactId = faker.number.int();
             const artifactArchive = faker.system.commonFileName('zip');
-            const downloadFilePath = path.posix.join(targetDir, artifactArchive);
+            const downloadFilePath = path.join(targetDir, artifactArchive);
             const content = faker.lorem.paragraph();
             const contentBuffer = Buffer.from(content, 'utf-8');
 
@@ -409,7 +410,7 @@ describe('GitHubWorkflowAsset', () => {
             const artifactName = faker.lorem.word();
             const artifactId = faker.number.int();
             const artifactArchive = faker.system.commonFileName('zip');
-            const downloadFilePath = path.posix.join(targetDir, artifactArchive);
+            const downloadFilePath = path.join(targetDir, artifactArchive);
             const content = faker.lorem.paragraph();
 
             const asset = new GitHubWorkflowAssetTest(owner, repo, workflow, artifactName);

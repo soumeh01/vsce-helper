@@ -1,6 +1,6 @@
 {
   "name": "@open-cmsis-pack/vsce-helper",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "publisher": "Arm",
   "author": "Jonatan Antoni <jonatan.antoni@arm.com>",
@@ -42,27 +42,29 @@
     "types:check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/decompress": "^4.2.7",
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^9.39.2",
     "@faker-js/faker": "^10.1.0",
-    "@types/node": "^20.19.25",
-    "@types/yargs": "^17.0.35",
-    "@vitest/coverage-v8": "^4.0.13",
-    "@vitest/ui": "^4.0.13",
-    "eslint": "^9.39.1",
-    "memfs": "^4.51.0",
+    "@types/node": "^20.19.0",
+    "@types/yargs": "^17.0.33",
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/ui": "^4.0.16",
+    "eslint": "^9.39.2",
+    "eslint-plugin-security": "^3.0.1",
+    "globals": "^16.5.0",
+    "memfs": "^4.51.1",
     "nock": "^14.0.6",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.47.0",
-    "vitest": "^4.0.13"
+    "typescript-eslint": "^8.50.0",
+    "vitest": "^4.0.16"
   },
   "dependencies": {
-    "decompress": "^4.2.1",
-    "decompress-tarxz": "^3.0.0",
+    "fast-extract": "^1.9.1",
     "node-fetch": "^3.3.2",
     "octokit": "^5.0.3",
     "tempfile": "^5.0.0",
-    "type-fest": "^5.2.0",
+    "type-fest": "^5.3.1",
     "yargs": "^18.0.0"
   },
   "downloader": {

@@ -25,12 +25,7 @@ import { PackageJson } from 'type-fest';
 import { promisify } from 'node:util';
 import tempfile from 'tempfile';
 import { OutgoingHttpHeaders } from 'node:http';
-import decompress from 'decompress';
-import decompressUnzip from 'decompress-unzip';
-import decompressTar from 'decompress-tar';
-import decompressTargz from 'decompress-targz';
-import decompressTarbz2 from 'decompress-tarbz2';
-import decompressTarxz from 'decompress-tarxz';
+import fastExtract, { Options } from 'fast-extract';
 import process from 'node:process';
 
 const exec = promisify(execAsync);
@@ -181,22 +176,11 @@ export abstract class AbstractAsset implements Asset {
         return downloadFile(url.toString(), downloadFilePath, headers);
     }
 
-    protected async extractArchive(archiveFile: string, dest?: string, options?: decompress.DecompressOptions) {
+    protected async extractArchive(archiveFile: string, dest?: string, options: Options = {}) {
         dest = await this.mkDest(dest);
         console.debug(`Extracting to ${dest} ...`);
 
-        options = {
-            plugins: [
-                decompressUnzip(),
-                decompressTar(),
-                decompressTargz(),
-                decompressTarbz2(),
-                decompressTarxz(),
-            ],
-            ...options,
-        };
-
-        await decompress(archiveFile, dest, options).catch(error => {
+        await fastExtract(archiveFile, dest, { force: true, ...options }).catch(error => {
             throw new Error('Failed to extract archive', { cause: error });
         });
 

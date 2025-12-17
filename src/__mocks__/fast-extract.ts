@@ -16,6 +16,6 @@
 
 import { vitest } from 'vitest';
 
-const decompress = vitest.fn().mockResolvedValue(undefined);
+const fastExtract = vitest.fn().mockResolvedValue(undefined);
 
-export default decompress;
+export default fastExtract;
