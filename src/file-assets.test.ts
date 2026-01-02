@@ -24,6 +24,7 @@ import { vol } from 'memfs';
 import path from 'path';
 import { Asset } from './downloader.ts';
 import fs from 'node:fs/promises';
+import { toPosix } from './test-utils.ts';
 
 vitest.mock('node:fs', async () => {
     const actualFs = await import('memfs');
@@ -147,7 +148,7 @@ describe('WebFileAsset', () => {
             expect(result).toBe(expectedResult);
 
             const disk = vol.toJSON();
-            expect(disk[expectedResult]).toBe(content);
+            expect(disk[toPosix(expectedResult)]).toBe(content);
 
             await asset.dispose();
             expect(fs.rm).not.toHaveBeenCalledWith(expect.any(String), { force: true, recursive: true });
@@ -172,7 +173,7 @@ describe('WebFileAsset', () => {
             expect(result).toBe(expectedResult);
 
             const disk = vol.toJSON();
-            expect(disk[expectedResult]).toBe(content);
+            expect(disk[toPosix(expectedResult)]).toBe(content);
 
             await asset.dispose();
             expect(fs.rm).not.toHaveBeenCalledWith(expect.any(String), { force: true, recursive: true });
@@ -197,7 +198,7 @@ describe('WebFileAsset', () => {
             expect(result).toBe(expectedResult);
 
             const disk = vol.toJSON();
-            expect(disk[expectedResult]).toBe(content);
+            expect(disk[toPosix(expectedResult)]).toBe(content);
 
             await asset.dispose();
             expect(fs.rm).not.toHaveBeenCalledWith(expect.any(String), { force: true, recursive: true });
@@ -220,7 +221,7 @@ describe('WebFileAsset', () => {
             expect(result).toMatch(new RegExp(`${filename}$`));
 
             const disk = vol.toJSON();
-            expect(disk[result]).toBe(content);
+            expect(disk[toPosix(result)]).toBe(content);
 
             await asset.dispose();
             expect(fs.rm).toHaveBeenCalledWith(path.dirname(result), { force: true, recursive: true });
@@ -249,7 +250,7 @@ describe('LocalFileAsset', () => {
             const result = await asset.copyTo(targetDir);
 
             expect(result).toBe(targetDir);
-            expect(vol.toJSON()[expectedResult]).toBe(content);
+            expect(vol.toJSON()[toPosix(expectedResult)]).toBe(content);
         });
 
         it('copies file to target dir with original filename', async () => {
@@ -266,7 +267,7 @@ describe('LocalFileAsset', () => {
             const result = await asset.copyTo(targetDir);
 
             expect(result).toBe(targetDir);
-            expect(vol.toJSON()[expectedResult]).toBe(content);
+            expect(vol.toJSON()[toPosix(expectedResult)]).toBe(content);
         });
 
     });

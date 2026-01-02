@@ -23,6 +23,7 @@ import { faker } from '@faker-js/faker';
 import { Octokit } from 'octokit';
 import path from 'path';
 import { fs, vol } from 'memfs';
+import { toPosix } from './test-utils.ts';
 
 type ExtractOptions = { strip?: number; force?: boolean };
 
@@ -317,9 +318,8 @@ describe('GitHubRepoAsset', () => {
 
             expect(result).toBe(targetDir);
 
-            console.log(vol.toJSON());
             expect(vol.toJSON()).toEqual(expect.objectContaining({
-                [path.join(targetDir, repoFile)]: repoFileContent,
+                [toPosix(path.join(targetDir, repoFile))]: repoFileContent,
             }));
         });
 
@@ -347,7 +347,7 @@ describe('GitHubRepoAsset', () => {
             expect(result).toBe(targetDir);
 
             expect(vol.toJSON()).toEqual(expect.objectContaining({
-                [path.join(targetDir, repoFile)]: repoFileContent,
+                [toPosix(path.join(targetDir, repoFile))]: repoFileContent,
             }));
         });
 
@@ -399,7 +399,7 @@ describe('GitHubWorkflowAsset', () => {
 
             expect(result).toBe(downloadFilePath);
             expect(vol.toJSON()).toEqual(expect.objectContaining({
-                [downloadFilePath]: content,
+                [toPosix(downloadFilePath)]: content,
             }));
         });
 
@@ -426,7 +426,7 @@ describe('GitHubWorkflowAsset', () => {
             expect(result).toBe(downloadFilePath);
             expect(octokitMock.rest.actions.downloadArtifact).not.toHaveBeenCalled();
             expect(vol.toJSON()).toEqual(expect.objectContaining({
-                [downloadFilePath]: content,
+                [toPosix(downloadFilePath)]: content,
             }));
         });
 
