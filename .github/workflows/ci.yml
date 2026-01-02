@@ -21,7 +21,7 @@ permissions:
   contents: read
   id-token: write
   packages: write
-  
+
 jobs:
   build:
     name: Build and test
@@ -57,7 +57,7 @@ jobs:
 
       - name: Unit tests
         run: |
-          npm run test:coverage        
+          npm run test:coverage
 
       - name: Publish coverage report to QLTY
         if: github.repository_owner == 'Open-CMSIS-Pack'
