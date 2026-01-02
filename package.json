@@ -60,12 +60,16 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
-    "fast-extract": "^1.9.1",
+    "extract-zip": "^2.0.1",
     "node-fetch": "^3.3.2",
     "octokit": "^5.0.3",
+    "tar": "^7.4.3",
     "tempfile": "^5.0.0",
     "type-fest": "^5.3.1",
     "yargs": "^18.0.0"
+  },
+  "optionalDependencies": {
+    "tar-fs": "^3.0.8"
   },
   "downloader": {
     "gh-release-asset": "1.6.0",

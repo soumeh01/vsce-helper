@@ -25,7 +25,8 @@ import { PackageJson } from 'type-fest';
 import { promisify } from 'node:util';
 import tempfile from 'tempfile';
 import { OutgoingHttpHeaders } from 'node:http';
-import fastExtract, { Options } from 'fast-extract';
+import extractZip from 'extract-zip';
+import * as tar from 'tar';
 import process from 'node:process';
 
 const exec = promisify(execAsync);
@@ -176,16 +177,68 @@ export abstract class AbstractAsset implements Asset {
         return downloadFile(url.toString(), downloadFilePath, headers);
     }
 
-    protected async extractArchive(archiveFile: string, dest?: string, options: Options = {}) {
+    protected async extractArchive(archiveFile: string, dest?: string, options: { strip?: number; force?: boolean } = {}) {
         dest = await this.mkDest(dest);
         console.debug(`Extracting to ${dest} ...`);
 
-        await fastExtract(archiveFile, dest, { force: true, ...options }).catch(error => {
+        const ext = path.extname(archiveFile).toLowerCase();
+
+        try {
+            // Handle ZIP files
+            if (ext === '.zip') {
+                await extractZip(archiveFile, { dir: path.resolve(dest) });
+
+                // Handle strip option for ZIP files if needed
+                if (options.strip && options.strip > 0) {
+                    await this.stripDirectories(dest, options.strip);
+                }
+            } else if (ext === '.gz' || ext === '.bz2' || ext === '.xz' || ext === '.tar') {
+                // Handle tar.gz, tar.bz2, tar.xz files
+                const tarOptions: Record<string, unknown> = {
+                    cwd: dest,
+                    strict: true,
+                    file: archiveFile,
+                };
+
+                if (options.strip !== undefined) {
+                    tarOptions.strip = options.strip;
+                }
+
+                await tar.extract(tarOptions);
+            } else {
+                throw new Error(`Unsupported archive format: ${ext}`);
+            }
+        } catch (error) {
             throw new Error('Failed to extract archive', { cause: error });
-        });
+        }
 
         return dest;
     }
+
+    private async stripDirectories(dir: string, levels: number): Promise<void> {
+        if (levels <= 0) return;
+
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+
+        // If there's only one directory, move its contents up
+        if (entries.length === 1 && entries[0].isDirectory()) {
+            const subDir = path.join(dir, entries[0].name);
+            const tempDir = path.join(path.dirname(dir), `temp-${Date.now()}`);
+
+            // Move subdirectory to temp location
+            await fs.rename(subDir, tempDir);
+
+            // Remove original directory
+            await fs.rm(dir, { recursive: true, force: true });
+
+            // Rename temp directory to original
+            await fs.rename(tempDir, dir);
+
+            // Recursively strip remaining levels
+            await this.stripDirectories(dir, levels - 1);
+        }
+    }
+
 
     protected async copyRecursive(src: string, destDir: string, options: { strip: number } = { strip: 0 }) {
         const stat = await fs.stat(src).catch(() => undefined);

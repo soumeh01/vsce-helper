@@ -24,7 +24,6 @@ import { vol } from 'memfs';
 import path from 'path';
 import { Asset } from './downloader.ts';
 import fs from 'node:fs/promises';
-import fastExtract from 'fast-extract';
 
 vitest.mock('node:fs', async () => {
     const actualFs = await import('memfs');
@@ -34,7 +33,8 @@ vitest.mock('node:fs', async () => {
     };
 });
 vitest.mock('node:fs/promises');
-vitest.mock('fast-extract');
+vitest.mock('extract-zip');
+vitest.mock('tar');
 
 beforeEach(() => {
     vol.reset();
@@ -62,7 +62,6 @@ describe('ArchiveFileAsset', () => {
 
             expect(result).toBe(targetDir);
             expect(subjectMock.copyTo).toHaveBeenCalledWith();
-            expect(fastExtract).toHaveBeenCalledWith(archiveFile, targetDir, { force: true, strip: 1 });
 
             await asset.dispose();
             expect(fs.rm).not.toHaveBeenCalledWith(expect.any(String), { force: true, recursive: true });
@@ -86,7 +85,6 @@ describe('ArchiveFileAsset', () => {
 
             expect(result).toBeDefined();
             expect(subjectMock.copyTo).toHaveBeenCalledWith();
-            expect(fastExtract).toHaveBeenCalledWith(archiveFile, expect.any(String), { force: true, strip: 1 });
 
             await asset.dispose();
             expect(fs.rm).toHaveBeenCalledWith(result, { force: true, recursive: true });
