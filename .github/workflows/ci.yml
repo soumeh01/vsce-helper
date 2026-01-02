@@ -59,6 +59,10 @@ jobs:
         run: |
           npm run test:coverage
 
+      - name: Integration tests
+        run: |
+          npm run test:integration
+
       - name: Publish coverage report to QLTY
         if: github.repository_owner == 'Open-CMSIS-Pack'
         uses: qltysh/qlty-action/coverage@c1d9ae56aba737dfb3c83921007a2610f1dad51c # v1

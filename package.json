@@ -35,6 +35,7 @@
     "build": "tsc",
     "clean": "git clean -f -x ./dist",
     "test": "vitest run",
+    "test:integration": "vitest run --testNamePattern=\"integration\"",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src",
