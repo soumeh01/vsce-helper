@@ -21,17 +21,22 @@ permissions:
   contents: read
   id-token: write
   packages: write
-  
+
 jobs:
   build:
     name: Build and test
-    runs-on: [ubuntu-latest]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022, macos-14]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
+      - run: git config --global core.autocrlf false
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
@@ -57,7 +62,11 @@ jobs:
 
       - name: Unit tests
         run: |
-          npm run test:coverage        
+          npm run test:coverage
+
+      - name: Integration tests
+        run: |
+          npm run test:integration
 
       - name: Publish coverage report to QLTY
         if: github.repository_owner == 'Open-CMSIS-Pack'
@@ -65,3 +74,4 @@ jobs:
         with:
           oidc: true
           files: src/coverage/lcov.info
+          add-prefix: src/

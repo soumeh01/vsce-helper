@@ -37,6 +37,7 @@
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run archive-formats.integration.test.ts",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "types:check": "tsc --noEmit"
@@ -44,10 +45,12 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@faker-js/faker": "^10.1.0",
+    "@types/archiver": "^7.0.0",
     "@types/node": "^20.19.0",
     "@types/yargs": "^17.0.33",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/ui": "^4.0.16",
+    "archiver": "^7.0.1",
     "eslint": "^9.39.2",
     "eslint-plugin-security": "^3.0.1",
     "globals": "^16.5.0",
@@ -60,12 +63,16 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
-    "fast-extract": "^1.9.1",
+    "extract-zip": "^2.0.1",
     "node-fetch": "^3.3.2",
     "octokit": "^5.0.3",
+    "tar": "^7.4.3",
     "tempfile": "^5.0.0",
     "type-fest": "^5.3.1",
     "yargs": "^18.0.0"
+  },
+  "optionalDependencies": {
+    "tar-fs": "^3.0.8"
   },
   "downloader": {
     "gh-release-asset": "1.6.0",

@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 Arm Limited
+ * Copyright 2025-2026 Arm Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,10 @@ import { downloadFile } from './file-download.ts';
 import { faker } from '@faker-js/faker';
 import { Octokit } from 'octokit';
 import path from 'path';
-import { Options } from 'fast-extract';
 import { fs, vol } from 'memfs';
+import { toPosix } from './test-utils.ts';
+
+type ExtractOptions = { strip?: number; force?: boolean };
 
 vitest.mock('node:fs/promises');
 vitest.mock('./file-download.ts', () => ({
@@ -288,7 +290,7 @@ describe('GitHubRepoAsset', () => {
         }
 
         public downloadRepo = vitest.fn(async (dest: string, _ref: string)  => path.join(dest, 'repo.tar.gz'));
-        public extractArchive = vitest.fn(async (_archiveFile: string, dest?: string, _options: Options = {}) => dest ?? faker.system.directoryPath());
+        public extractArchive = vitest.fn(async (_archiveFile: string, dest?: string, _options: ExtractOptions = {}) => dest ?? faker.system.directoryPath());
     }
 
     describe('copyTo', async () => {
@@ -304,7 +306,7 @@ describe('GitHubRepoAsset', () => {
 
             const asset = new GitHubRepoAssetTest(owner, repo, { ref: ref, path: repoFolder });
 
-            asset.extractArchive.mockImplementation(async (_archiveFile: string, dest?: string, _options: Options = {}) => {
+            asset.extractArchive.mockImplementation(async (_archiveFile: string, dest?: string, _options: ExtractOptions = {}) => {
                 dest = dest ?? faker.system.directoryPath();
                 fs.mkdirSync(path.join(dest, repoFolder), { recursive: true });
                 fs.writeFileSync(path.join(dest, repoFolder, repoFile), repoFileContent);
@@ -316,9 +318,8 @@ describe('GitHubRepoAsset', () => {
 
             expect(result).toBe(targetDir);
 
-            console.log(vol.toJSON());
             expect(vol.toJSON()).toEqual(expect.objectContaining({
-                [path.join(targetDir, repoFile)]: repoFileContent,
+                [toPosix(path.join(targetDir, repoFile))]: repoFileContent,
             }));
         });
 
@@ -333,7 +334,7 @@ describe('GitHubRepoAsset', () => {
 
             const asset = new GitHubRepoAssetTest(owner, repo, { ref: ref, path: path.join(repoFolder, repoFile) });
 
-            asset.extractArchive.mockImplementation(async (_archiveFile: string, dest?: string, _options: Options = {}) => {
+            asset.extractArchive.mockImplementation(async (_archiveFile: string, dest?: string, _options: ExtractOptions = {}) => {
                 dest = dest ?? faker.system.directoryPath();
                 fs.mkdirSync(path.join(dest, repoFolder), { recursive: true });
                 fs.writeFileSync(path.join(dest, repoFolder, repoFile), repoFileContent);
@@ -346,7 +347,7 @@ describe('GitHubRepoAsset', () => {
             expect(result).toBe(targetDir);
 
             expect(vol.toJSON()).toEqual(expect.objectContaining({
-                [path.join(targetDir, repoFile)]: repoFileContent,
+                [toPosix(path.join(targetDir, repoFile))]: repoFileContent,
             }));
         });
 
@@ -398,7 +399,7 @@ describe('GitHubWorkflowAsset', () => {
 
             expect(result).toBe(downloadFilePath);
             expect(vol.toJSON()).toEqual(expect.objectContaining({
-                [downloadFilePath]: content,
+                [toPosix(downloadFilePath)]: content,
             }));
         });
 
@@ -425,7 +426,7 @@ describe('GitHubWorkflowAsset', () => {
             expect(result).toBe(downloadFilePath);
             expect(octokitMock.rest.actions.downloadArtifact).not.toHaveBeenCalled();
             expect(vol.toJSON()).toEqual(expect.objectContaining({
-                [downloadFilePath]: content,
+                [toPosix(downloadFilePath)]: content,
             }));
         });
 
