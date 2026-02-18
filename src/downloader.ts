@@ -192,7 +192,7 @@ export abstract class AbstractAsset implements Asset {
                 if (options.strip && options.strip > 0) {
                     await this.stripDirectories(dest, options.strip);
                 }
-            } else if (ext === '.gz' || ext === '.bz2' || ext === '.xz' || ext === '.tar') {
+            } else if (ext === '.gz' || ext === '.bz2' || ext === '.xz' || ext === '.tar' || ext === '.tgz') {
                 // Handle tar.gz, tar.bz2, tar.xz files
                 const tarOptions: Record<string, unknown> = {
                     cwd: dest,
