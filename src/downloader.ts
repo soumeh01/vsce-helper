@@ -181,29 +181,52 @@ export abstract class AbstractAsset implements Asset {
         dest = await this.mkDest(dest);
         console.debug(`Extracting to ${dest} ...`);
 
-        const ext = path.extname(archiveFile).toLowerCase();
+        // Improved extension detection for multi-part extensions
+        const lower = archiveFile.toLowerCase();
+        let ext = path.extname(lower);
+        let archiveType = '';
+
+        if (lower.endsWith('.tar.gz') || lower.endsWith('.tgz')) {
+            archiveType = 'tar.gz';
+        } else if (lower.endsWith('.tar.bz2') || lower.endsWith('.tbz2')) {
+            archiveType = 'tar.bz2';
+        } else if (lower.endsWith('.tar.xz') || lower.endsWith('.txz')) {
+            archiveType = 'tar.xz';
+        } else if (ext === '.zip') {
+            archiveType = 'zip';
+        } else if (ext === '.tar') {
+            archiveType = 'tar';
+        } else if (ext === '.gz') {
+            archiveType = 'gz';
+        } else if (ext === '.bz2') {
+            archiveType = 'bz2';
+        } else if (ext === '.xz') {
+            archiveType = 'xz';
+        }
 
         try {
-            // Handle ZIP files
-            if (ext === '.zip') {
+            if (archiveType === 'zip') {
                 await extractZip(archiveFile, { dir: path.resolve(dest) });
-
-                // Handle strip option for ZIP files if needed
                 if (options.strip && options.strip > 0) {
                     await this.stripDirectories(dest, options.strip);
                 }
-            } else if (['.gz', '.bz2', '.xz', '.tar', '.tgz', '.tbz2', '.txz'].includes(ext)) {
-                // Handle tar.gz, tar.bz2, tar.xz files
+            } else if (
+                archiveType === 'tar.gz' ||
+                archiveType === 'tar.bz2' ||
+                archiveType === 'tar.xz' ||
+                archiveType === 'tar' ||
+                archiveType === 'tgz' ||
+                archiveType === 'tbz2' ||
+                archiveType === 'txz'
+            ) {
                 const tarOptions: Record<string, unknown> = {
                     cwd: dest,
                     strict: true,
                     file: archiveFile,
                 };
-
                 if (options.strip !== undefined) {
                     tarOptions.strip = options.strip;
                 }
-
                 await tar.extract(tarOptions);
             } else {
                 throw new Error(`Unsupported archive format: ${ext}`);
