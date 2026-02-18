@@ -80,7 +80,9 @@ export class WebFileAsset extends AbstractAsset {
     }
 
     get cacheId() {
-        return path.join(this.url.host, path.normalize(this.url.pathname));
+        const dirname = path.dirname(this.url.pathname);
+        const basename = path.basename(this.url.pathname, path.extname(this.url.pathname));
+        return path.normalize(path.join(this.url.host, dirname, basename));
     }
 
     public async copyTo(dest?: string) {
