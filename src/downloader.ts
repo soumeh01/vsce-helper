@@ -183,7 +183,7 @@ export abstract class AbstractAsset implements Asset {
 
         // Improved extension detection for multi-part extensions
         const lower = archiveFile.toLowerCase();
-        let ext = path.extname(lower);
+        const ext = path.extname(lower);
         let archiveType = '';
 
         if (lower.endsWith('.tar.gz') || lower.endsWith('.tgz')) {
