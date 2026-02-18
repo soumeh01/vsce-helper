@@ -177,6 +177,25 @@ describe('Archive Format Integration Tests', () => {
                 path.join(extractPath, 'root', 'subdir', 'file3.txt'),
             ],
         },
+        {
+            name: 'tgz',
+            ext: '.tgz',
+            create: async (archivePath: string, _strip: number) => {
+                await tarModule.create({ gzip: true, file: archivePath, cwd: testDataDir }, ['root']);
+            },
+            strip: [0, 1],
+            expected: (extractPath: string, strip: number) => strip === 1
+                ? [
+                    path.join(extractPath, 'file1.txt'),
+                    path.join(extractPath, 'file2.txt'),
+                    path.join(extractPath, 'subdir', 'file3.txt'),
+                ]
+                : [
+                    path.join(extractPath, 'root', 'file1.txt'),
+                    path.join(extractPath, 'root', 'file2.txt'),
+                    path.join(extractPath, 'root', 'subdir', 'file3.txt'),
+                ],
+        },
     ];
 
     archiveCases.forEach(({ name, ext, create, strip, expected }) => {
