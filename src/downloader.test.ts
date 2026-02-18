@@ -15,6 +15,11 @@
  */
 
 import * as os from 'node:os';
+import tempfile from 'tempfile';
+// Mock tempfile globally for all tests
+vitest.mock('tempfile', () => ({
+    default: vitest.fn(() => `/tmp/mock-tempfile`)
+}));
 import { describe, it, expect, vitest, beforeEach } from 'vitest';
 import { AbstractAsset, Asset, DisposeFn, Disposable, Downloadable, Downloader } from './downloader.ts';
 import { vol } from 'memfs';
@@ -116,6 +121,23 @@ describe('AbstractAsset', () => {
     });
 
     describe('mkDest', () => {
+
+        it('throws if a file exists at dest', async () => {
+            const targetDir = faker.system.directoryPath();
+            const asset = new TestAsset();
+            // Simulate file exists at dest
+            (fs.stat as any).mockResolvedValueOnce({ isFile: () => true });
+            await expect(asset.mkDest(targetDir)).rejects.toThrow(`Cannot create directory '${targetDir}': a file with the same name already exists.`);
+        });
+
+        it('throws if a file exists at temp dir', async () => {
+            const asset = new TestAsset();
+            // Simulate no cacheDir, so tempfile() is used
+            const tempDir = '/tmp/mock-tempfile';
+            // Simulate file exists at tempDir
+            (fs.stat as any).mockResolvedValueOnce({ isFile: () => true });
+            await expect(asset.mkDest()).rejects.toThrow(`Cannot create temp directory '${tempDir}': a file with the same name already exists.`);
+        });
 
         it('shall create destination path and leave it on dispose', async () => {
             const targetDir = faker.system.directoryPath();

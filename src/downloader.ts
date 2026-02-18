@@ -138,6 +138,16 @@ export abstract class AbstractAsset implements Asset {
         if (dest === undefined) {
             return this.mkTempDir();
         }
+        // Check if dest exists and is a file
+        try {
+            const stat = await fs.stat(dest);
+            if (stat.isFile()) {
+                throw new Error(`Cannot create directory '${dest}': a file with the same name already exists.`);
+            }
+        } catch (err: any) {
+            if (err.code !== 'ENOENT') throw err;
+            // ENOENT means it does not exist, so we can proceed
+        }
         await fs.mkdir(dest, { recursive: true });
         return dest;
     }
@@ -147,11 +157,27 @@ export abstract class AbstractAsset implements Asset {
             const cacheId = await this.cacheId;
             if (cacheId !== undefined) {
                 const tempDir = path.join(this.cacheDir, cacheId);
+                try {
+                    const stat = await fs.stat(tempDir);
+                    if (stat.isFile()) {
+                        throw new Error(`Cannot create temp directory '${tempDir}': a file with the same name already exists.`);
+                    }
+                } catch (err: any) {
+                    if (err.code !== 'ENOENT') throw err;
+                }
                 await fs.mkdir(tempDir, { recursive: true });
                 return tempDir;
             }
         }
         const tempDir = tempfile();
+        try {
+            const stat = await fs.stat(tempDir);
+            if (stat.isFile()) {
+                throw new Error(`Cannot create temp directory '${tempDir}': a file with the same name already exists.`);
+            }
+        } catch (err: any) {
+            if (err.code !== 'ENOENT') throw err;
+        }
         await fs.mkdir(tempDir, { recursive: true });
         this.addDisposable(() => fs.rm(tempDir, { force: true, recursive: true }));
         return tempDir;
