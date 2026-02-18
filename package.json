@@ -1,6 +1,6 @@
 {
   "name": "@soumeh01/vsce-helper",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
   "publisher": "Arm",
   "author": "Jonatan Antoni <jonatan.antoni@arm.com>",

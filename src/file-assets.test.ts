@@ -192,7 +192,13 @@ describe('WebFileAsset', () => {
                 .get(url.pathname)
                 .reply(200, content);
 
-            const expectedResult = path.join(targetDir, url.hostname, path.dirname(url.pathname), path.basename(url.pathname, path.extname(url.pathname)), filename);
+            const expectedResult = path.join(
+                targetDir,
+                url.hostname,
+                path.dirname(url.pathname),
+                path.basename(url.pathname, path.extname(url.pathname)) + '_cache',
+                filename
+            );
             const result = await asset.withCacheDir(targetDir).copyTo();
 
             expect(result).toBe(expectedResult);
