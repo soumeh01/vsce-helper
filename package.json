@@ -1,6 +1,6 @@
 {
-  "name": "@open-cmsis-pack/vsce-helper",
-  "version": "0.2.3",
+  "name": "@soumeh01/vsce-helper",
+  "version": "2.0.0",
   "type": "module",
   "publisher": "Arm",
   "author": "Jonatan Antoni <jonatan.antoni@arm.com>",
@@ -9,11 +9,11 @@
   "keywords": [],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Open-CMSIS-Pack/vsce-helper.git"
+    "url": "git+https://github.com/soumeh01/vsce-helper.git"
   },
-  "qna": "https://github.com/Open-CMSIS-Pack/vsce-helper/issues",
+  "qna": "https://github.com/soumeh01/vsce-helper/issues",
   "bugs": {
-    "url": "https://github.com/Open-CMSIS-Pack/vsce-helper/issues"
+    "url": "https://github.com/soumeh01/vsce-helper/issues"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
