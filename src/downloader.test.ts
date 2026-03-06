@@ -23,8 +23,16 @@ import path from 'node:path';
 import { faker } from '@faker-js/faker';
 import { OutgoingHttpHeaders } from 'node:http';
 import { downloadFile } from './file-download.ts';
+import * as tar from 'tar';
 
+const childProcessMock = vitest.hoisted(() => ({
+    exec: vitest.fn(),
+    execFile: vitest.fn(),
+}));
+
+vitest.mock('node:child_process', () => childProcessMock);
 vitest.mock('node:fs/promises');
+vitest.mock('tar');
 vitest.mock('./file-download.ts', () => ({
     downloadFile: vitest.fn((_url, dest, _header) => dest),
 }));
@@ -90,6 +98,10 @@ describe('AbstractAsset', () => {
 
         public async downloadFile(url: URL, downloadFilePath: string, headers: OutgoingHttpHeaders = {}) {
             return super.downloadFile(url, downloadFilePath, headers);
+        }
+
+        public async extractArchive(archiveFile: string, dest?: string, options: { strip?: number; force?: boolean } = {}) {
+            return super.extractArchive(archiveFile, dest, options);
         }
 
     };
@@ -218,6 +230,38 @@ describe('AbstractAsset', () => {
             const result = await asset.downloadFile(url, filename, headers);
             expect(result).toBe(filename);
             expect(downloadFile).not.toHaveBeenCalled();
+        });
+
+    });
+
+    describe('extractArchive', () => {
+
+        it('falls back to system tar for large-number TAR header parse errors', async () => {
+            const asset = new TestAsset();
+            const archiveFile = path.join(faker.system.directoryPath(), faker.system.commonFileName('tar.xz'));
+            const targetDir = faker.system.directoryPath();
+
+            const tarError = Object.assign(
+                new Error('parsed number outside of javascript safe integer range'),
+                { code: 'TAR_ENTRY_INVALID', tarCode: 'TAR_ENTRY_INVALID' }
+            );
+
+            vitest.mocked(tar.extract).mockRejectedValueOnce(tarError);
+            childProcessMock.execFile.mockImplementation((_file, _args, callback) => callback?.(null, '', ''));
+
+            await expect(asset.extractArchive(archiveFile, targetDir, { strip: 1 })).resolves.toBe(targetDir);
+            expect(childProcessMock.execFile).toHaveBeenCalledWith('tar', ['-xf', archiveFile, '-C', targetDir, '--strip-components', '1'], expect.any(Function));
+        });
+
+        it('does not fall back for unrelated TAR extraction errors', async () => {
+            const asset = new TestAsset();
+            const archiveFile = path.join(faker.system.directoryPath(), faker.system.commonFileName('tar.xz'));
+            const targetDir = faker.system.directoryPath();
+
+            vitest.mocked(tar.extract).mockRejectedValueOnce(new Error('unexpected end of archive'));
+
+            await expect(asset.extractArchive(archiveFile, targetDir)).rejects.toThrow('Failed to extract archive');
+            expect(childProcessMock.execFile).not.toHaveBeenCalled();
         });
 
     });

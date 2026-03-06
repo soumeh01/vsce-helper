@@ -17,7 +17,7 @@
 import path from 'node:path';
 import os from 'node:os';
 import fs from 'node:fs/promises';
-import { exec as execAsync } from 'node:child_process';
+import { exec as execAsync, execFile as execFileAsync } from 'node:child_process';
 import { downloadFile } from './file-download.ts';
 import yargs, { Argv } from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -30,6 +30,9 @@ import * as tar from 'tar';
 import process from 'node:process';
 
 const exec = promisify(execAsync);
+const execFile = promisify(execFileAsync);
+
+const TAR_EXTENSIONS = ['.gz', '.bz2', '.xz', '.tar', '.tgz', '.tbz2', '.txz'] as const;
 
 export const PACKAGE_MANAGER = ['npm', 'yarn'] as const;
 export type PackageManager = typeof PACKAGE_MANAGER[number];
@@ -192,7 +195,7 @@ export abstract class AbstractAsset implements Asset {
                 if (options.strip && options.strip > 0) {
                     await this.stripDirectories(dest, options.strip);
                 }
-            } else if (['.gz', '.bz2', '.xz', '.tar', '.tgz', '.tbz2', '.txz'].includes(ext)) {
+            } else if (TAR_EXTENSIONS.includes(ext as typeof TAR_EXTENSIONS[number])) {
                 // Handle tar.gz, tar.bz2, tar.xz files
                 const tarOptions: Record<string, unknown> = {
                     cwd: dest,
@@ -204,7 +207,15 @@ export abstract class AbstractAsset implements Asset {
                     tarOptions.strip = options.strip;
                 }
 
-                await tar.extract(tarOptions);
+                try {
+                    await tar.extract(tarOptions);
+                } catch (error) {
+                    if (!this.isTarLargeNumberHeaderError(error)) {
+                        throw error;
+                    }
+                    console.warn('Falling back to system tar for extraction due to incompatible TAR header parsing.');
+                    await this.extractWithSystemTar(archiveFile, dest, options.strip);
+                }
             } else {
                 throw new Error(`Unsupported archive format: ${ext}`);
             }
@@ -213,6 +224,37 @@ export abstract class AbstractAsset implements Asset {
         }
 
         return dest;
+    }
+
+    private isTarLargeNumberHeaderError(error: unknown): boolean {
+        const toInspect = [error];
+        let current = error;
+        while (current && typeof current === 'object' && 'cause' in current) {
+            const cause = (current as { cause?: unknown }).cause;
+            if (cause === undefined) {
+                break;
+            }
+            toInspect.push(cause);
+            current = cause;
+        }
+
+        return toInspect.some(err => {
+            if (!(err instanceof Error)) {
+                return false;
+            }
+            const typedError = err as Error & { code?: string; tarCode?: string };
+            const isInvalidTarEntry = typedError.code === 'TAR_ENTRY_INVALID' || typedError.tarCode === 'TAR_ENTRY_INVALID';
+            const isLargeNumberParseIssue = typedError.message.includes('parsed number outside of javascript safe integer range');
+            return isInvalidTarEntry && isLargeNumberParseIssue;
+        });
+    }
+
+    private async extractWithSystemTar(archiveFile: string, dest: string, strip = 0): Promise<void> {
+        const args = ['-xf', archiveFile, '-C', dest];
+        if (strip > 0) {
+            args.push('--strip-components', String(strip));
+        }
+        await execFile('tar', args);
     }
 
     private async stripDirectories(dir: string, levels: number): Promise<void> {
